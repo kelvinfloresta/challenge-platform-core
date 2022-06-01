@@ -1,0 +1,58 @@
+name: Deploy Production
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  Deploy:
+    runs-on: ubuntu-latest
+    container: golang:1.17.3
+
+    services:
+      postgres:
+        image: postgres:13.4-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Fetch Repository
+        uses: actions/checkout@v2
+
+      - name: Run Test
+        env:
+            TEST_DATABASE_HOST: postgres
+        run: go test ./... -p 1 -v
+ 
+      - name: Generate binary
+        run: go build
+
+      - name: Rename binary
+        run: mv conformity-core conformity-core@latest
+
+      - name: Copy binary
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SSH_HOST_PRODUCTION }}
+          username: ${{ secrets.SSH_USER_PRODUCTION }}
+          key: ${{ secrets.SSH_KEY_PRODUCTION }}
+          source: "./conformity-core@latest"
+          target: "~/"
+
+      - name: Deploy script
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST_PRODUCTION }}
+          username: ${{ secrets.SSH_USER_PRODUCTION }}
+          key: ${{ secrets.SSH_KEY_PRODUCTION }}
+          script: |
+            mv conformity-core@latest conformity-core
+            chmod 700 conformity-core
+            sudo systemctl restart conformity.service
+
