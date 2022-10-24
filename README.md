@@ -2,7 +2,7 @@
 
 ...
 
-![Deploy Production](https://github.com/venturaac/conformity-core/actions/workflows/deploy.yml/badge.svg)
+![Deploy Production](https://github.com/kelvinfloresta/challenge-platform-core/actions/workflows/deploy.yml/badge.svg)
 
 # Useful commands
 
