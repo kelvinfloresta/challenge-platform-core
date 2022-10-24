@@ -1,4 +1,4 @@
-# Conformity Core
+# Challenge Platform Core
 
 ...
 
